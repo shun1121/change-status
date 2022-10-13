@@ -1,3 +1,5 @@
+const functions = require("firebase-functions");
+
 require('dotenv').config();
 const { createServer } = require('http');
 const express = require('express');
@@ -17,64 +19,58 @@ app.use('/slack/events', slackEvents.requestListener());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json())
 
-// app.get('/', (req, res) => res.send('Hello World!'));
+// // app.get('/', (req, res) => res.send('Hello World!'));
 app.get('/', function(req, res) {
-  res.send('Ngrok is working! Path Hit: ' + req.url);
+  res.send('Ngrok is working!! Path Hit: ' + req.url);
 });
 
-const server = createServer(app);
+// const server = createServer(app);
 
-server.listen(port, () => console.log(`listening on por ${port}!`));
+// server.listen(port, () => console.log(`listening on por ${port}!`));
 
-app.post('/command', async (req, res) => {
-  // console.log(req)
-  // console.log(res.body.command)
-  if (res.req.body.command === '/hiru') {
-    console.log(res.req.body.command)
+app.post('/slack/command', async (req, res) => {
+  if (req.body.command === '/hiru') {
     const currentTime = Math.floor(Date.now() / 1000)
     const expiration = currentTime + 3600
     res.send("");
     const result = await web.users.profile.set({
       profile: {
         status_emoji: ":ohiru:",
-        // status_expiration: currentTime+10,
         status_expiration: expiration
       }
     });
-    const post = await web.chat.postMessage({
+    await web.chat.postMessage({
       token: process.env.USER_OAUTH_TOKEN,
       channel: "#breaktime",
       text: ":ohiru:"
     });
     console.log(result)
-  } else if (res.req.body.command === '/zenhan') {
+  } else if (req.body.command === '/zenhan') {
     const currentTime = Math.floor(Date.now() / 1000)
     const expiration = currentTime + 1800
     res.send("");
     await web.users.profile.set({
       profile: {
         status_emoji: ":half1:",
-        // status_expiration: currentTime+30,
         status_expiration: expiration
       }
     });
-    const post = await web.chat.postMessage({
+    await web.chat.postMessage({
       token: process.env.USER_OAUTH_TOKEN,
       channel: "#breaktime",
       text: ":half1:"
     });
-  } else if (res.req.body.command === '/kouhan') {
+  } else if (req.body.command === '/kouhan') {
     const currentTime = Math.floor(Date.now() / 1000)
     const expiration = currentTime + 1800
     res.send("");
     await web.users.profile.set({
       profile: {
         status_emoji: ":half2:",
-        // status_expiration: currentTime+30,
         status_expiration: expiration
       }
     });
-    const post = await web.chat.postMessage({
+    await web.chat.postMessage({
       token: process.env.USER_OAUTH_TOKEN,
       channel: "#breaktime",
       text: ":half2:"
@@ -83,3 +79,5 @@ app.post('/command', async (req, res) => {
     console.log("error")
   }
 });
+
+exports.app = functions.https.onRequest(app)

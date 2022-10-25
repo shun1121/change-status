@@ -6,17 +6,9 @@ const { createEventAdapter } = require("@slack/events-api");
 const { WebClient } = require("@slack/web-api");
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 const slackEvents = createEventAdapter(slackSigningSecret);
-const {
-  initializeApp,
-  applicationDefault,
-  cert,
-} = require("firebase-admin/app");
-const {
-  getFirestore,
-  Timestamp,
-  FieldValue,
-} = require("firebase-admin/firestore");
-const token = process.env.USER_OAUTH_TOKEN;
+const { initializeApp } = require("firebase-admin/app");
+const { getFirestore } = require("firebase-admin/firestore");
+// const token = process.env.USER_OAUTH_TOKEN;
 
 initializeApp();
 
@@ -28,7 +20,7 @@ app.use("/slack/events", slackEvents.requestListener());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.get("/", async function (req, res) {
+app.get("/", async (req, res) => {
   // 認可コードの取得
   const code = req.query.code;
   const error = req.query.error;
@@ -41,7 +33,9 @@ app.get("/", async function (req, res) {
       client_secret: clientSecret,
       code,
     });
-    res.send(`access_token: ${result.authed_user.access_token}`);
+    const authed_access_token = result.authed_user.access_token;
+    const authed_access_id = result.authed_user.id;
+    res.send(`access_token: ${authed_access_token}`);
 
     const time = new Date();
     const year = time.getFullYear();
@@ -62,48 +56,22 @@ app.get("/", async function (req, res) {
       minutes +
       ":" +
       seconds;
-    console.log(created_at);
-    const docRef = db.collection("users").doc(result.authed_user.id);
+    const docRef = db.collection("users").doc(authed_access_id);
     await docRef.set({
-      id: result.authed_user.id,
-      access_token: result.authed_user.access_token,
+      id: authed_access_id,
+      access_token: authed_access_token,
       created_at: created_at,
     });
 
-    console.log("before post request");
-    console.log(
-      "result.authed_user.access_token = " + result.authed_user.access_token
-    );
     app.post("/slack/command/", async (req, res) => {
-      console.log("after post request");
-      // let token;
-      const cityRef = db.collection("users").doc(result.authed_user.access_token);
-      console.log(cityRef)
-      const doc = await cityRef.get();
-      if (!doc.exists) {
-        console.log('No such document!');
-      } else {
-        console.log('Document data:', doc.data());
-      }
-      // const snapshot = await db.collection("users").get();
-      // snapshot.forEach((doc) => {
-      //   console.log(
-      //     "result.authed_user.access_token in forEach = " +
-      //       result.authed_user.access_token
-      //   );
-      //   console.log(doc.id, "=>", doc.data());
-      //   if (result.authed_user.access_token === doc.data().access_token) {
-      //     console.log("ok");
-      //     token = doc.data().access_token;
-      //   }
-      // });
-      console.log("after forEach loop");
-      console.log(
-        "result.authed_user.access_token = " + result.authed_user.access_token
-      );
-      // console.log("access_token = " + token)
-      const web = new WebClient(token); // /hiru /zenhan /hiruでプロフを変えると最後にdispatch_failedが出る
-      // const web = new WebClient(result.authed_user.access_token);
+      let token;
+      const snapshot = await db.collection("users").get();
+      snapshot.forEach((doc) => {
+        if (authed_access_id === doc.id) {
+          token = doc.data().access_token;
+        }
+      });
+      const web = new WebClient(token);
       if (req.body.command === "/hiru") {
         console.log("slash command hiru");
         const currentTime = Math.floor(Date.now() / 1000);

@@ -20,8 +20,9 @@ app.use("/slack/events", slackEvents.requestListener());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+let authed_access_id
+let authed_access_token
 app.get("/", async (req, res) => {
-  // 認可コードの取得
   const code = req.query.code;
   const error = req.query.error;
   const clientId = process.env.CLIENT_ID;
@@ -33,8 +34,8 @@ app.get("/", async (req, res) => {
       client_secret: clientSecret,
       code,
     });
-    const authed_access_token = result.authed_user.access_token;
-    const authed_access_id = result.authed_user.id;
+    authed_access_token = result.authed_user.access_token;
+    authed_access_id = result.authed_user.id;
     res.send(`access_token: ${authed_access_token}`);
 
     const time = new Date();
@@ -62,69 +63,70 @@ app.get("/", async (req, res) => {
       access_token: authed_access_token,
       created_at: created_at,
     });
-
-    app.post("/slack/command/", async (req, res) => {
-      let token;
-      const snapshot = await db.collection("users").get();
-      snapshot.forEach((doc) => {
-        if (authed_access_id === doc.id) {
-          token = doc.data().access_token;
-        }
-      });
-      const web = new WebClient(token);
-      if (req.body.command === "/hiru") {
-        console.log("slash command hiru");
-        const currentTime = Math.floor(Date.now() / 1000);
-        const expiration = currentTime + 3600;
-        res.send("");
-        await web.users.profile.set({
-          profile: {
-            status_emoji: ":ohiru:",
-            status_expiration: expiration,
-          },
-        });
-        // await web.chat.postMessage({
-        //   token: result.authed_user.access_token,
-        //   channel: "#breaktime",
-        //   text: ":ohiru:",
-        // });
-      } else if (req.body.command === "/zenhan") {
-        const currentTime = Math.floor(Date.now() / 1000);
-        const expiration = currentTime + 1800;
-        res.send("");
-        await web.users.profile.set({
-          profile: {
-            status_emoji: ":half1:",
-            status_expiration: expiration,
-          },
-        });
-        // await web.chat.postMessage({
-        //   token: result.authed_user.access_token,
-        //   channel: "#breaktime",
-        //   text: ":half1:",
-        // });
-      } else if (req.body.command === "/kouhan") {
-        const currentTime = Math.floor(Date.now() / 1000);
-        const expiration = currentTime + 1800;
-        res.send("");
-        await web.users.profile.set({
-          profile: {
-            status_emoji: ":half2:",
-            status_expiration: expiration,
-          },
-        });
-        await web.chat.postMessage({
-          token: result.authed_user.access_token,
-          channel: "#breaktime",
-          text: ":half2:",
-        });
-      } else {
-        console.log("error");
-      }
-    });
   } else if (error) {
-    res.send("error");
-    console.log("エラー");
+    res.send("認証がキャンセルされました。");
+    console.log("認証がキャンセルされました。");
+  }
+});
+app.post("/slack/command/", async (req, res) => {
+  let token;
+  const snapshot = await db.collection("users").get();
+  snapshot.forEach((doc) => {
+    if (req.body.user_id === doc.id) {
+      console.log("ok");
+      token = doc.data().access_token;
+    }
+  });
+  const web = new WebClient(token);
+  if (req.body.command === "/hiru") {
+    console.log("slash command hiru");
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime + 3600;
+    res.send("");
+    await web.users.profile.set({
+      user: req.body.user_id,
+      profile: {
+        status_emoji: ":ohiru:",
+        status_expiration: expiration,
+      },
+    });
+    // await web.chat.postMessage({
+    //   token: result.authed_user.access_token,
+    //   channel: "#breaktime",
+    //   text: ":ohiru:",
+    // });
+  } else if (req.body.command === "/zenhan") {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime + 1800;
+    res.send("");
+    await web.users.profile.set({
+      profile: {
+        status_emoji: ":half1:",
+        status_expiration: expiration,
+      },
+    });
+    // await web.chat.postMessage({
+    //   token: req.body.user_id,
+    //   channel: "#breaktime",
+    //   text: ":half1:",
+    // });
+  } else if (req.body.command === "/kouhan") {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime + 1800;
+    res.send("");
+    await web.users.profile.set({
+      profile: {
+        status_emoji: ":half2:",
+        status_expiration: expiration,
+      },
+    });
+    await web.chat.postMessage({
+      token: req.body.user_id,
+      channel: "#breaktime",
+      text: ":half2:",
+    });
+  } else {
+    console.log("error");
   }
 });
 

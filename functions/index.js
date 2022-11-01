@@ -67,64 +67,31 @@ exports.scheduledFunction = functions.pubsub.schedule('every 5 minutes').onRun((
 });
 
 app.post("/slack/command/", async (req, res) => {
-  console.log("before send method")
-  res.status(200).send("")
-  console.log("after send method & before snapshot");
   let token;
   const snapshot = await db.collection("users").get();
-  console.log("after snapshot & before snapshot forEach"); // 3、4秒
   snapshot.forEach((doc) => {
-    console.log("inside snapshot forEach start");
     if (req.body.user_id === doc.id) {
       token = doc.data().access_token;
-      console.log("token");
     }
-    console.log("inside snapshot forEach end");
   });
-  console.log("after snapshot section");
   const web = new WebClient(token);
   if (req.body.command === "/hiru") {
-    console.log("inside hiru command"); //0.何秒
-    // res.send("");
+    res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
     const expiration = currentTime + 3600;
-    // const setStamp2Prof = async () => {
-    //   const profileStamp = await web.users.profile.set({
-    //     profile: {
-    //       status_emoji: ":ohiru:",
-    //       status_expiration: expiration,
-    //     },
-    //   });
-    //   return profileStamp
-    // }
     await web.users.profile.set({
       profile: {
         status_emoji: ":ohiru:",
         status_expiration: expiration,
       },
     });
-    console.log("before postmessage1"); //3秒
-    // const postStamp2Channel = async () => {
-    //   const postStamp = await web.chat.postMessage({
-    //     token: token,
-    //     // channel: "#breaktime",
-    //     channel: "#test-shunsuke",
-    //     text: ":ohiru:",
-    //   });
-    //   return postStamp
-    // }
-    web.chat.postMessage({
+    await web.chat.postMessage({
       token: token,
-      // channel: "#breaktime",
-      channel: "#test-shunsuke",
+      channel: "#breaktime",
       text: ":ohiru:",
     });
-    // const results = await Promise.all([setStamp2Prof(), postStamp2Channel()])
-    // console.log(results)
-    // res.end()
   } else if (req.body.command === "/zenhan") {
-    console.log("inside zenhan command");
-    // res.send("");
+    res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
     const expiration = currentTime + 1800;
     await web.users.profile.set({
@@ -133,17 +100,13 @@ app.post("/slack/command/", async (req, res) => {
         status_expiration: expiration,
       },
     });
-    console.log("before postmessage2");
     await web.chat.postMessage({
       token: token,
-      channel: "#test-shunsuke",
-      // channel: "#breaktime",
+      channel: "#breaktime",
       text: ":half1:",
     });
-    // res.end()
   } else if (req.body.command === "/kouhan") {
-    console.log("inside kouhan command");
-    // res.send("");
+    res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
     const expiration = currentTime + 1800;
     await web.users.profile.set({
@@ -152,17 +115,13 @@ app.post("/slack/command/", async (req, res) => {
         status_expiration: expiration,
       },
     });
-    console.log("before postmessage3");
     await web.chat.postMessage({
       token: token,
-      channel: "#test-shunsuke",
-      // channel: "#breaktime",
+      channel: "#breaktime",
       text: ":half2:",
     });
-    // res.end()
   } else {
     console.log("error");
-    // res.end()
   }
   res.end()
 });

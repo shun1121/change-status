@@ -1,13 +1,13 @@
 require("dotenv").config();
-const functions = require("firebase-functions");
 const express = require("express");
+const functions = require("firebase-functions");
 const bodyParser = require("body-parser");
 const { createEventAdapter } = require("@slack/events-api");
 const { WebClient } = require("@slack/web-api");
-const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
-const slackEvents = createEventAdapter(slackSigningSecret);
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
+const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
+const slackEvents = createEventAdapter(slackSigningSecret);
 
 initializeApp();
 const db = getFirestore();
@@ -59,11 +59,6 @@ app.get("/", async (req, res) => {
   } else if (error) {
     res.send("認証がキャンセルされました。");
   }
-});
-
-exports.scheduledFunction = functions.pubsub.schedule('every 5 minutes').onRun((context) => {
-  console.log('This will be run every 5 minutes!');
-  return null;
 });
 
 app.post("/slack/command/", async (req, res) => {
@@ -126,4 +121,4 @@ app.post("/slack/command/", async (req, res) => {
   res.end()
 });
 
-exports.slackApp = functions.region("asia-northeast1").https.onRequest(app);
+exports.slackApp = functions.runWith({ memory: '512MB' }).region("asia-northeast1").https.onRequest(app);

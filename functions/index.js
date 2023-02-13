@@ -115,6 +115,66 @@ app.post("/slack/command/", async (req, res) => {
       channel: "#breaktime",
       text: ":half2:",
     });
+  } else if (req.body.command === "/bg_in") {
+    res.send("");
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    await web.users.profile.set({
+      profile: {
+        status_emoji: ":office:",
+        status_expiration: expiration,
+      },
+    });
+    await web.chat.postMessage({
+      token: token,
+      channel: "#backend_dayrepo",
+      text: "おはようございます。稼働開始します。",
+    });
+  } else if (req.body.command === "/bg_out") {
+    res.send("");
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    await web.users.profile.set({
+      profile: {
+        status_emoji: ":退勤:",
+        status_expiration: expiration,
+      },
+    });
+    await web.chat.postMessage({
+      token: token,
+      channel: "#backend_dayrepo",
+      text: "お疲れ様です。お先に失礼します。",
+    });
+  } else if (req.body.command === "/bg_riseki") {
+    res.send("");
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    await web.users.profile.set({
+      profile: {
+        status_emoji: ":riseki:",
+        status_expiration: expiration,
+      },
+    });
+    await web.chat.postMessage({
+      token: token,
+      channel: "#backend_dayrepo",
+      text: "休憩・離席します。",
+    });
+  } else if (req.body.command === "/bg_hukki") {
+    res.send("");
+    const currentTime = Math.floor(Date.now() / 1000);
+    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    await web.users.profile.set({
+      profile: {
+        status_emoji: ":office:",
+        status_expiration: expiration,
+      },
+    });
+    await web.chat.postMessage({
+      token: token,
+      channel: "#backend_dayrepo",
+      text: "復帰します。",
+    });
   } else {
     console.log("error");
   }

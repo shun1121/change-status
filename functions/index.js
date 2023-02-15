@@ -136,7 +136,7 @@ app.post("/slack/command/", async (req, res) => {
     const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
     await web.users.profile.set({
       profile: {
-        status_emoji: ":退勤:",
+        status_emoji: ":taikin:",
         status_expiration: expiration,
       },
     });

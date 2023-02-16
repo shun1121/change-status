@@ -118,7 +118,7 @@ app.post("/slack/command/", async (req, res) => {
   } else if (req.body.command === "/bg_in") {
     res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
-    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    const expiration = currentTime - (currentTime % 86400) + 86400 - 32400; //明日の0時まで
     await web.users.profile.set({
       profile: {
         status_emoji: ":office:",
@@ -133,7 +133,7 @@ app.post("/slack/command/", async (req, res) => {
   } else if (req.body.command === "/bg_out") {
     res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
-    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    const expiration = currentTime - (currentTime % 86400) + 86400 - 32400; //明日の0時まで
     await web.users.profile.set({
       profile: {
         status_emoji: ":taikin:",
@@ -148,7 +148,7 @@ app.post("/slack/command/", async (req, res) => {
   } else if (req.body.command === "/bg_riseki") {
     res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
-    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    const expiration = currentTime - (currentTime % 86400) + 86400- 32400; //明日の0時まで
     await web.users.profile.set({
       profile: {
         status_emoji: ":riseki:",
@@ -163,7 +163,7 @@ app.post("/slack/command/", async (req, res) => {
   } else if (req.body.command === "/bg_hukki") {
     res.send("");
     const currentTime = Math.floor(Date.now() / 1000);
-    const expiration = currentTime - (currentTime % 86400) + 86400; //明日の0時まで
+    const expiration = currentTime - (currentTime % 86400) + 86400 - 32400; //明日の0時まで
     await web.users.profile.set({
       profile: {
         status_emoji: ":office:",
